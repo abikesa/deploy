@@ -34,8 +34,15 @@ def main(commit_message, git_remote, ghp_remote):
     os.chdir(Path(__file__).resolve().parents[1])
 
     # Get current branch
-    current_branch = run("git branch --show-current", capture_output=True) or "main"
+    current_branch = run("git rev-parse --abbrev-ref HEAD", capture_output=True).strip()
     git_branch = click.prompt("🌿 Enter the Git branch to push to", default=current_branch, show_default=True)
+    # 🔥 NEW: Check for mismatch between active branch and branch to push
+    if current_branch != git_branch:
+        click.secho(f"⚠️  You are on branch '{current_branch}', but you are trying to push '{git_branch}'.", fg="yellow")
+        proceed = click.confirm("Continue anyway?", default=False)
+        if not proceed:
+            click.secho("🛑 Deployment aborted to prevent wrong branch push.", fg="red")
+            sys.exit(1)
 
     # Check local branch
     if not branch_exists(git_branch):
@@ -137,22 +144,8 @@ def main(commit_message, git_remote, ghp_remote):
         run(f"git push -u {git_remote} {git_branch}")
 
     click.secho(f"⬆️ Pushing to {git_remote}/{git_branch}...", fg="cyan")
-    try:
-        run(f"git push {git_remote} {git_branch}")
-    except subprocess.CalledProcessError as e:
-        click.secho("❌ Push failed: Non-fast-forward or other issue.", fg="red")
-        retry = click.confirm("🛠️ Attempt to pull, rebase, and retry push?", default=True)
-        if retry:
-            try:
-                run(f"git pull --rebase {git_remote} {git_branch}")
-                run(f"git push {git_remote} {git_branch}")
-                click.secho("✅ Push succeeded after rebase.", fg="green")
-            except subprocess.CalledProcessError:
-                click.secho("🚨 Automatic rebase and push failed. Please resolve manually.", fg="red")
-                sys.exit(1)
-        else:
-            click.secho("🛑 Push aborted. Manual intervention required.", fg="yellow")
-            sys.exit(1)
+    run(f"git push {git_remote} {git_branch}")
+
     # Handle gh-pages
     click.secho("🌐 Checking for 'gh-pages' branch...", fg="cyan")
     try:
