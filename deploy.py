@@ -112,12 +112,15 @@ def main(commit_message, git_remote, ghp_remote):
                 else:
                     shutil.copy2(s, d_)
 
-    # Plant flicks
+    # 🌿 Plant flicks if available
     click.secho("🌿 Planting flicks...", fg="cyan")
-    try:
-        run("python python/plant_flicks_frac.py --percent 23")
-    except Exception as e:
-        click.secho(f"⚠️ Flick planting failed: {e}", fg="yellow")
+    if os.path.exists("python/plant_flicks_frac.py"):
+        try:
+            run("python python/plant_flicks_frac.py --percent 23")
+        except Exception as e:
+            click.secho(f"⚠️ Flick planting failed: {e}", fg="yellow")
+    else:
+        click.secho("✅ No flicks planted (plant_flicks_frac.py not found). Skipping.", fg="green")
 
     # Stage and commit
     click.secho("🧾 Staging changes...", fg="cyan")
@@ -162,22 +165,19 @@ def main(commit_message, git_remote, ghp_remote):
             click.secho("🛑 Push aborted. Manual intervention required.", fg="yellow")
             sys.exit(1)
 
-    # Handle gh-pages properly
+    # Handle gh-pages
     click.secho("🌐 Checking for 'gh-pages' branch...", fg="cyan")
     try:
-        run("git ls-remote --exit-code --heads origin gh-pages", capture_output=True)
-        click.secho("✅ Remote 'gh-pages' branch exists. Checking it out...", fg="green")
-        run("git fetch origin gh-pages:gh-pages")
-        run("git checkout gh-pages")
+        run("git rev-parse --verify gh-pages", capture_output=True)
+        click.secho("✅ 'gh-pages' branch exists.", fg="green")
     except subprocess.CalledProcessError:
-        click.secho("🆕 Remote 'gh-pages' branch not found. Creating it locally...", fg="yellow")
+        click.secho("🆕 'gh-pages' branch not found. Creating it...", fg="yellow")
         run("git checkout --orphan gh-pages")
         run("git reset --hard")
         Path(".keep").touch()
         run("git add .keep")
         run("git commit -m 'Initialize gh-pages'")
         run(f"git push {git_remote} gh-pages")
-    finally:
         run(f"git checkout {git_branch}")
 
     # Check if HTML changed
