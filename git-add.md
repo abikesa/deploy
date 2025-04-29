@@ -5,6 +5,12 @@ So just run:
 git add .
 git commit -m "💾 deploy.py drama checkpoint"
 ```
+
+Working in a new environment? Run (or skip):
+```bash
+pip install -r requirements.txt
+```
+
 Then rerun:
 ```bash
 ./python/deploy.py
