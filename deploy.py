@@ -31,6 +31,13 @@ def remote_exists(remote):
 @click.option('--ghp-remote', prompt="🚀 Enter the remote for ghp-import", default="origin", show_default=True, help="Remote for ghp-import deployment.")
 def main(commit_message, git_remote, ghp_remote):
     os.chdir(Path(__file__).resolve().parents[1])
+    
+    build_path = Path("_build")
+    if build_path.exists():
+        click.secho("🧹 Removing previous _build directory...", fg="cyan")
+        shutil.rmtree(build_path)
+    else:
+        click.secho("📂 No previous _build directory found.", fg="blue")
 
     current_branch = run("git rev-parse --abbrev-ref HEAD", capture_output=True).strip()
     git_branch = click.prompt("🌿 Enter the Git branch to push to", default=current_branch, show_default=True)
@@ -83,7 +90,7 @@ def main(commit_message, git_remote, ghp_remote):
         "pdfs", "figures", "media", "testbin", "nis", "myhtml", "dedication", "python", "ai",
         "r", "stata", "bash", "xml", "data", "aperitivo", "antipasto", "primo", "secondo",
         "contorno", "insalata", "formaggio-e-frutta", "dolce", "caffe", "digestivo", "ukubona",
-        "the-rug"
+        "the-rug", "spjd-rebuild", "spjd-beta"
     ]
     for d in extras:
         if os.path.isdir(d):
