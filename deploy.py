@@ -28,16 +28,9 @@ def remote_exists(remote):
 @click.command()
 @click.option('--commit-message', prompt="📜 Enter your commit message", help="The Git commit message.")
 @click.option('--git-remote', prompt="🛰️ Enter the Git remote to push to", default="origin", show_default=True, help="Git remote name.")
-@click.option('--ghp-remote', prompt="🚀 Enter the remote for ghp-import", default="origin", show_default=True, help="Remote for ghp-import deployment.")
+@click.option('--ghp-remote', default="origin", show_default=True, help="Remote for ghp-import deployment.")
 def main(commit_message, git_remote, ghp_remote):
     os.chdir(Path(__file__).resolve().parents[1])
-    
-    build_path = Path("_build")
-    if build_path.exists():
-        click.secho("🧹 Removing previous _build directory...", fg="cyan")
-        shutil.rmtree(build_path)
-    else:
-        click.secho("📂 No previous _build directory found.", fg="blue")
 
     current_branch = run("git rev-parse --abbrev-ref HEAD", capture_output=True).strip()
     git_branch = click.prompt("🌿 Enter the Git branch to push to", default=current_branch, show_default=True)
@@ -90,7 +83,7 @@ def main(commit_message, git_remote, ghp_remote):
         "pdfs", "figures", "media", "testbin", "nis", "myhtml", "dedication", "python", "ai",
         "r", "stata", "bash", "xml", "data", "aperitivo", "antipasto", "primo", "secondo",
         "contorno", "insalata", "formaggio-e-frutta", "dolce", "caffe", "digestivo", "ukubona",
-        "the-rug", "spjd-rebuild", "spjd-beta"
+        "the-rug", "spjd-rebuild", "spjd-beta", "ukuvula", "tokens"
     ]
     for d in extras:
         if os.path.isdir(d):
@@ -143,7 +136,11 @@ def main(commit_message, git_remote, ghp_remote):
         click.secho("🆕 Remote 'gh-pages' branch will be created by ghp-import.", fg="yellow")
 
     click.secho("🚀 Deploying with ghp-import...", fg="cyan")
-    run(f"ghp-import -n -p -f -r {ghp_remote} _build/html")
+
+    if ghp_remote == "gh-pages":
+        ghp_remote = "origin"
+
+    run(f"ghp-import -n -p -f -b gh-pages -r {ghp_remote} _build/html")
 
 if __name__ == "__main__":
     main()
