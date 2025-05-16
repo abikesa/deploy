@@ -83,7 +83,7 @@ def main(commit_message, git_remote, ghp_remote):
         "pdfs", "figures", "media", "testbin", "nis", "myhtml", "dedication", "python", "ai",
         "r", "stata", "bash", "xml", "data", "aperitivo", "antipasto", "primo", "secondo",
         "contorno", "insalata", "formaggio-e-frutta", "dolce", "caffe", "digestivo", "ukubona",
-        "the-rug", "spjd-rebuild", "spjd-beta", "ukuvula", "tokens"
+        "the-rug", "spjd-rebuild", "spjd-beta", "ukuvula", "tokens", "ukuvela"
     ]
     for d in extras:
         if os.path.isdir(d):
@@ -114,7 +114,13 @@ def main(commit_message, git_remote, ghp_remote):
 
     if remote_branch_exists:
         click.secho("🔄 Fetching remote changes...", fg="cyan")
-        run(f"git fetch {git_remote}")
+        try:
+            run(f"git fetch {git_remote}")
+        except subprocess.CalledProcessError:
+            click.secho("🧹 Detected fetch error. Pruning remote refs and retrying...", fg="yellow")
+            run(f"git remote prune {git_remote}")
+            run(f"git fetch {git_remote}")
+
         click.secho("🔀 Rebasing local changes...", fg="cyan")
         try:
             run(f"git rebase {git_remote}/{git_branch}")
